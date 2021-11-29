@@ -1,0 +1,39 @@
+import httpx #Async Python requests library
+
+#Function to get the titles of Hacker News best stories. Parameter number_stories is used to tell the
+#function how many stories to return. This function is slow because getting one story title requires
+#a single request. 20 story titles means 21 requests. One request to get the item numbers of the best
+#stories (from the Hacker News API) and one request for each story. Since this process can be slow, the function writes the story titles
+#to a local file in the directory this script is run. The file name will be called hnewsbest.txt .
+#General info about the Hacker News API can be found here https://github.com/HackerNews/API .
+
+#Enter the number of story titles to write to the local txt file in the hnews() function parameter on line 37 (the default number of 20 is already entered.)
+def hnews(number_stories):
+    #The Hacker News API has an endpoint that lists the item numbers for the stories currently ranked
+    #best. Use async requests library httpx to get the item numbers. 
+    a = httpx.get("https://hacker-news.firebaseio.com/v0/beststories.json?print=pretty").json()
+    #number_stories is from the function parameter.
+    b = a[0:number_stories]
+
+    #Empty list to add story titles
+    list = []
+    for c in b:
+        list.append(f"https://hacker-news.firebaseio.com/v0/item/{c}.json?print=pretty")
+    
+    #Creat empty list list_title to add the parsed story titles 
+    list_title = []
+
+    for e in list:
+        list_title.append(httpx.get(e).json()["title"])
+
+    #Create or overwrite a file called hnewsbest.txt to place story titles
+    hacker_news_best =open("hnewsbest.txt", "w")
+    
+    #Add the story titles to the text file and empty lines to improve formating
+    for item in list_title:
+        hacker_news_best.writelines(item + '\n' + '\n')
+    #Close the file
+    hacker_news_best.close
+
+#Run function with 20 stories
+hnews(20)
